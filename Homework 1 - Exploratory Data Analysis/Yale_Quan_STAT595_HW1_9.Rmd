@@ -1,0 +1,110 @@
+---
+title: "Yale Quan - STAT 595 HW 1 #9"
+output: html_notebook
+---
+
+This exercise involves the Auto data set studied in the lab. Make sure that the missing values have been removed from the data.
+
+```{r}
+#Load packages
+
+library("ISLR")
+library("GGally")
+library("ggplot2")
+library("dplyr")
+library("scales")
+
+```
+```{r}
+
+Auto_Data = ISLR::Auto
+summary(Auto_Data)
+
+# Check for missing values
+
+sum(is.na(Auto_Data))
+
+# Note: The orginal data contained 408 observations but 16 observations with missing values were removed.
+```
+
+1) Which of the predictors are quantitative, and which are qualitative?
+
+```{r}
+
+# See what type of data each variable is
+str(Auto_Data)
+
+# Note: Cylinders and Origin should be categorical not continuous data
+Auto_Data$cylinders = as.factor(Auto_Data$cylinders)
+Auto_Data$origin = as.factor(Auto_Data$origin)
+
+str(Auto_Data)
+
+```
+
+2) What is the range of each quantitative predictor?
+
+```{r}
+#Subset the data to remove non-quantitative
+num_subset = Auto_Data%>%select(-name, -cylinders, -origin)
+
+# Create dataframe of min and max
+variable_range = data.frame(min=sapply(num_subset, min),max=sapply(num_subset, max))
+variable_range
+
+```
+
+3) What is the mean and standard deviation of each quantitative predictor?
+
+```{r}
+des_num_subset = data.frame(min=sapply(num_subset, min),max=sapply(num_subset, max), mean=sapply(num_subset, mean), std=sapply(num_subset,sd))
+
+des_num_subset
+```
+
+4) Now remove the 10th through 85th observations. What is the range, mean, and standard deviation of each predictor in the subset of the data that remains?
+```{r}
+
+# Remove obs # 10-85
+num_not_10_85 = num_subset[-(10:84),]
+
+# Create dataframe of range, mean, and std
+des_num_not_10_85 = data.frame(min=sapply(num_not_10_85, min),max=sapply(num_not_10_85, max), mean=sapply(num_not_10_85, mean), std=sapply(num_not_10_85,sd))
+
+des_num_not_10_85
+```
+
+5) Using the full data set, investigate the predictors graphically, using scatterplots or other tools of your choice. Create some plots highlighting the relationships among the predictors. Comment on your findings.
+
+```{r}
+
+ggcorr(Auto_Data, palette = "RdBu", label = TRUE, label_size = 3, label_round = 2, hjust = 1 )
+
+ggpairs(num_subset, axisLabels = "none", progress = FALSE)
+
+```
+
+```{r}
+
+ggplot(data = Auto_Data, mapping = aes(x = displacement, y = mpg)) + 
+  geom_point() + geom_smooth() + ggtitle("Engine Displacement vs mpg") + xlab("Engine displacement \n (cu. inches)") + ylab("Miles per gallon")
+
+```
+
+```{r}
+
+ggplot(data = Auto_Data, mapping = aes(x = acceleration, y =mpg)) + geom_point() + geom_smooth() + ggtitle("Acceleration vs mpg") + xlab("Acceleration \n 0-60mph (sec)") + ylab("Miles per gallon")
+
+```
+```{r}
+
+ggplot(data = Auto_Data, mapping = aes(x = cylinders, y = mpg)) + geom_col() + facet_wrap(~origin, ncol = 1) + ggtitle("MPG vs Cylinders seperated by country of origin", subtitle = "1 = American, 2 = European, 3 = Japenese") + scale_y_continuous(labels = comma)
+
+```
+
+
+6) Suppose that we wish to predict gas mileage (mpg) on the basis of the other variables. Do your plots suggest that any of the other variables might be useful in predicting mpg? Justify your answer.
+
+
+
+

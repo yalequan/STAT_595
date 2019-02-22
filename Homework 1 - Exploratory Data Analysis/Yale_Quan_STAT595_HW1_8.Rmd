@@ -1,0 +1,163 @@
+---
+title: "Yale Quan - STAT 595 HW 1 #8"
+output:
+  pdf_document: default
+  html_notebook: default
+---
+
+Problem 8:
+
+This exercise relates to the College data set, which can be found in the file College.csv. It contains a number of variables for 777 different universities and colleges in the US.
+
+```{r}
+#Load packages
+
+library("ISLR")
+library("GGally")
+library("ggplot2")
+library("dplyr")
+library("scales")
+
+
+```
+
+A) Use the read.csv() function to read the data into R. Call the loaded data college. Make sure that you have the directory set to the correct location for the data.
+
+```{r}
+
+# Load the dataset
+College_HW = ISLR::College
+
+```
+
+B) Look at the data using the fix() function. You should notice that the first column is just the name of each university. We don't really want R to treat this as data. However, it may be handy to have these names for later.
+
+```{r}
+
+fix(College_HW)
+
+```
+
+C_i). Use the summary() function to produce a numerical summary of the variables in the data set.
+
+```{r}
+summary(College_HW)
+```
+
+
+C_ii) Use the pairs() function to produce a scatterplot matrix the first ten columns or variables of the data. Recall that you can reference the first ten columns of a matrix A using A[,1:10].
+
+```{r}
+ggcorr(College_HW[,1:10], palette = "RdBu", label = TRUE, hjust = 0.7)
+
+ggpairs(College_HW[,1:10], axisLabels = "none", progress = FALSE)
+
+```
+
+C_iii) Use the plot() function to produce side-by-side boxplots of Outstate versus Private.
+
+```{r}
+out_vs_private = ggplot(data = College_HW, aes(Private, Outstate))
+
+out_vs_private + geom_boxplot() + ggtitle("Out of State Tuiton") + xlab("Private School") + ylab("Number of students paying out of state tuiton")
+```
+
+
+C_iv) Create a new qualitative variable, called Elite, by binning the Top10perc variable. We are going to divide universities into two groups based on whether or not the proportion of students coming from the top 10% of their high school classes exceeds 50%.  Use the summary() function to see how many elite universities there are. Now use the plot() function to produce side-by-side boxplots of Outstate versus Elite.
+
+```{r}
+
+College_HW = mutate(College_HW, Elite = ifelse(College_HW$Top10perc > 50, "Elite", "Not Elite"))
+College_HW$Elite = as.factor(College_HW$Elite)
+
+colnames(College_HW)
+
+College_HW = College_HW[, c(1, 19, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18)]
+
+head(College_HW)
+
+```
+
+```{r}
+
+summary(College_HW)
+
+out_vs_elite = ggplot(data = College_HW, aes(Elite, Outstate))
+
+out_vs_elite + geom_boxplot() + ggtitle("Out of State Tuition vs Elite Schools") +  xlab("") + ylab("Number of out of state students")
+```
+ 
+D) Use the hist() function to produce some histograms with differing numbers of bins for a few of the quantitative variables. You may find the command par(mfrow=c(2,2)) useful: it will divide the print window into four regions so that four plots can be made simultaneously. Modifying the arguments to this function will divide the screen in other ways.
+
+```{r}
+
+ggplot(data = College_HW, aes(x = perc.alumni)) + geom_histogram(aes(y=..density..), binwidth = 5, color = "black", fill = "white") + geom_density(alpha = 0.2, fill = "#07DEED") + theme(axis.ticks = element_blank(), axis.text.y = element_blank()) + facet_wrap(~Elite, ncol = 1) + ggtitle("Comparing the percent of alumni who donate") + xlab("Percent of Alumni who donate") + ylab("Number of Universities")
+
+
+```
+
+```{r}
+
+ggplot(data = College_HW, aes(x=Expend)) + geom_histogram(aes(y = ..density..), binwidth = 500, color = "black", fill = "white") + geom_density(alpha = 0.2, fill = "#67ED00") + theme(axis.ticks = element_blank(), axis.text.y = element_blank()) + facet_wrap(~Elite, ncol = 1) + ggtitle("Comparing the Instructional expenditure") + xlab("Spending Per Student in Dollars") + ylab("Number of Universities")
+
+
+```
+ 
+```{r}
+
+ggplot(data = College_HW, aes(x=Grad.Rate)) + geom_histogram(aes(y=..density..),binwidth = 1, color = "black", fill = "white") + geom_density(alpha = 0.2, fill = "#FF6666") + theme(axis.ticks = element_blank(), axis.text.y = element_blank()) + facet_wrap(~Elite, ncol = 1) + ggtitle("Comparing Graduation Rates") + xlab("Graduation Rate in Percent") + ylab("Number of Universities")
+
+
+```
+
+```{r}
+
+ggplot(data = College_HW, aes(x=PhD)) + geom_histogram(aes(y=..density..),binwidth = 1, color = "black", fill = "white") + geom_density(alpha = 0.2, fill = "#FF6666") + theme(axis.ticks = element_blank(), axis.text.y = element_blank()) + facet_wrap(~Elite, ncol = 1) + ggtitle("Comparing number of PhD Faculty") + xlab("Number of PhD Faculty") + ylab("Number of Universities")
+
+```
+
+
+
+To help better analyze the data we want to create a new column titled "Rejected". This will be the difference between the number of application accepted (Accept) and the number of new students enrolled (Enroll).  We will look at some descriptive statistics and basic graphs.  We want to see of elite schools reject more students than not elite schools
+
+```{r}
+
+College_HW = mutate(College_HW, Rejected = Apps - Accept)
+
+colnames(College_HW)
+
+College_HW = College_HW[, c(1, 2, 3, 4, 5, 20, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19)]
+
+head(College_HW)
+
+```
+
+```{r}
+
+summary(College_HW)
+
+
+rejected_vs_elite = ggplot(data = College_HW, aes(Elite, Rejected))
+
+apps_vs_elite = ggplot(data = College_HW, aes(x = Elite, y = Apps))
+
+rejected_vs_elite + geom_boxplot() + ggtitle("Number of rejected students from both Elite School and not Elite schools", subtitle = "Elite School admits over 50% of the top 10% of High School Students") +  xlab("") + ylab("Number of rejected students")
+
+
+require(gridExtra)
+
+plot1 = rejected_vs_elite + geom_col() + scale_y_continuous(labels = comma)
+plot2 = apps_vs_elite + geom_col() + scale_y_continuous(labels = comma)
+grid.arrange(plot1, plot2, ncol = 2, top = "Comparing Rejection Numbers")
+
+```
+
+D) Continue exploring the data, and provide a brief summary of what you discover
+
+We can see a strong correlation between many of the variables.  There is almost perfect positive linear correlation between Apps and Accept, Accept and Enroll, Apps and Enroll, Enroll and F.Undergrad, Accept and F.Undergrad, Apps and F.Undergrad, and Top10Perc and Top25Perc.
+
+From the data exploration we can see that Elite schools admit more out of state students.  Additionally the Elite schools have a higher percentage of alumni who donate to their programs.  Elite schools also spend more per student then non-elite schools and they have a higher graduation rate.
+
+If we compare the number of students rejected from elite and non-elite schools the proportion of students rejected from elite schools is about 250,000/500,000 = 0.5 or 50% while non-elite schools is 550,000/2,500,000 = .22 or 22%.
+
+Further data analysis should focus on finding what factors contribute most to a school being considered elite or not.
