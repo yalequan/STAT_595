@@ -1,0 +1,89 @@
+---
+title: 'STAT 595 Midterm 1 Question 2'
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Using the Liver Cancer data given on the Beachboard, fit a logistic regression model for the probability of severity based on various predictors (BMI, Age, Time, Markers, Hepatitis, Jaundice). Describe your findings.
+
+```{r}
+# Load needed Libraries
+
+library("tidyverse")
+library("car")
+```
+
+
+Check data structure and integrity
+
+```{r}
+head(Liver_Cancer)
+
+summary(Liver_Cancer)
+
+str(Liver_Cancer)
+```
+
+We will start our logistic regression by re-coding the severity variable.High = 0, Low = 1.
+
+```{r}
+Liver_Cancer_2 = Liver_Cancer %>% mutate(Severity = ifelse(Severity == "High", 0, 1))
+
+Liver_Cancer_2$Markers = as.factor(Liver_Cancer_2$Markers)
+Liver_Cancer_2$Hepatitis = as.factor(Liver_Cancer_2$Hepatitis)
+Liver_Cancer_2$Jaundice = as.factor(Liver_Cancer_2$Jaundice)
+Liver_Cancer_2$Validation = as.factor(Liver_Cancer_2$Validation)
+
+view(Liver_Cancer_2)
+str(Liver_Cancer_2)
+
+```
+
+We will now fit the logisitc regresion model.  Note that R uses logistic regression to predict the P(1) or in our model the P(Low)
+
+```{r}
+
+logit_model = glm(Severity ~ ., data = Liver_Cancer_2,  family = binomial())
+
+summary(logit_model)
+
+```
+
+From the above results we can see that the only significant coeffecient is Age.  All other coeffecients are not significantly different from zero.
+
+We want to check for multicoliniarity
+
+```{r}
+vif(logit_model)
+```
+
+
+We will refit the model with just age
+
+```{r}
+logit_model_2 = glm(Severity ~ Age, data = Liver_Cancer_2,  family = binomial())
+
+summary(logit_model_2)
+```
+
+We want to plot the model to validate our choice of logistic regression
+
+```{r}
+
+newx = seq(10, 85, by = 1)
+
+fm = predict(logit_model_2, newdata = data.frame(Age = newx), type = "response")
+
+plot(newx, fm, type = "l", xlab = "age", ylab = "Probability of Low Liver Cancer", main= "Probabilty of Low Severity", ylim = c(0,1), lwd = 2, col = "red")
+
+grid(NULL, NULL, lty = 6, col = "cornsilk2")
+
+abline(h = 1, lty = 2, lwd = 2)
+abline(h = 0, lty = 2, lwd = 2)
+
+```
+
+

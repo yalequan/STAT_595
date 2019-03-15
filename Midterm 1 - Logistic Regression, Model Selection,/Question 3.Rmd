@@ -1,0 +1,197 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This question should be answered using the Weekly data set, which is part of the ISLR package. This data is similar in nature to the Smarket data from this chapter's lab, except that it contains 1, 089 weekly returns for 21 years, from the beginning of 1990 to the end of 2010.
+
+A.	Produce some numerical and graphical summaries of the Weekly data. Do there appear to be any patterns?
+
+```{r}
+library("tidyverse")
+library("ISLR")
+library("dplyr")
+```
+
+Load the dataset and check structure
+
+```{r}
+weekly = ISLR::Weekly
+
+head(weekly)
+str(weekly)
+```
+
+Start getting numerical and graphical summaries of the data
+
+```{r}
+
+summary(weekly) # Numeric Summary
+
+```
+
+```{r}
+# Check correlation of variables
+ggcorr(weekly, palette = "RdBu", label = TRUE, label_size = 3, label_round = 2) 
+
+```
+
+```{r}
+# Check visual plots of variables
+pairs(weekly)
+```
+
+B. Use the full data set to perform a logistic regression with
+Direction as the response and the five lag variables plus Volume
+as predictors. Use the summary function to print the results. Do
+any of the predictors appear to be statistically significant? If so,
+which ones?
+
+```{r}
+
+weekly_2 = weekly %>% mutate(Direction = ifelse(Direction == "Down", 0, 1))
+str(weekly_2)
+
+```
+
+```{r}
+weekly_logit_model = glm(Direction ~ . -Year - Today, data = weekly_2,  family = binomial())
+
+summary(weekly_logit_model)
+```
+
+C. Compute the confusion matrix and overall fraction of correct
+predictions. Explain what the confusion matrix is telling you
+about the types of mistakes made by logistic regression.
+
+```{r}
+
+weekly_logit_model_pred = ifelse(predict(weekly_logit_model, type = "response")>0.5, "Up", "Down")
+
+
+weekly_logit_model_pred = table(predicted = weekly_logit_model_pred, actual = weekly$Direction)
+
+weekly_logit_model_pred
+
+```
+
+D. Now fit the logistic regression model using a training data period
+from 1990 to 2008, with Lag2 as the only predictor. Compute the
+confusion matrix and the overall fraction of correct predictions
+for the held out data (that is, the data from 2009 and 2010).
+
+```{r}
+
+#split the datset
+weekly_trn = filter(weekly, Year <=2008)
+weekly_test = filter(weekly, Year > 2008)
+
+# Fit model and confusion matrix
+Lag2_logit_model = glm(Direction ~ Lag2, data = weekly_trn,  family = binomial())
+
+# Convert to classifications
+trn_pred = ifelse(predict(Lag2_logit_model, type = "response")>0.5, "Up", "Down")
+
+# Make Predictions on Training Data
+trn_tab = table(predicted = trn_pred, actual_train = weekly_trn$Direction)
+
+
+#Make Prediction on Test Data
+test_pred = ifelse(predict(weekly_test_model, newdata = weekly_test, type = "response")>0.5, "Up", "Down")
+
+test_tab = table(predicted = test_pred, actual_test = weekly_test$Direction)
+
+#View Tables
+trn_tab
+
+test_tab
+```
+
+E.	Experiment with different combinations of predictors, including possible transformations and interactions, for each of the methods. Report the variables, method, and associated confusion matrix that appears to provide the best results on the held out data. Note that you should also experiment with values for K in the KNN classifier.
+
+```{r}
+
+# Training with Lag 1
+
+#split the datset
+weekly_trn = filter(weekly, Year <=2008)
+weekly_test = filter(weekly, Year > 2008)
+
+# Fit model and confusion matrix
+Lag1_logit_model = glm(Direction ~ Lag1, data = weekly_trn,  family = "binomial")
+
+# Convert to classifications
+trn_pred = ifelse(predict(Lag1_logit_model, type = "response")>0.5, "Up", "Down")
+
+# Make Predictions on Training Data
+trn_tab = table(predicted = trn_pred, actual_train = weekly_trn$Direction)
+
+#Make Prediction on Test Data
+test_pred = ifelse(predict(Lag1_logit_model, newdata = weekly_test, type = "response")>0.5, "Up", "Down")
+
+test_tab = table(predicted = test_pred, actual_test = weekly_test$Direction)
+
+#View Tables
+trn_tab
+
+test_tab
+
+```
+
+```{r}
+# Interaction Between Lag1 and Lag2
+
+#split the datset
+weekly_trn = filter(weekly, Year <=2008)
+weekly_test = filter(weekly, Year > 2008)
+
+# Fit model and confusion matrix
+Lag_logit_model = glm(Direction ~ Lag2:Lag1, data = weekly_trn,  family = "binomial")
+
+# Convert to classifications
+trn_pred = ifelse(predict(Lag_logit_model, type = "response")>0.5, "Up", "Down")
+
+# Make Predictions on Training Data
+trn_tab = table(predicted = trn_pred, actual_train = weekly_trn$Direction)
+
+#Make Prediction on Test Data
+test_pred = ifelse(predict(Lag_logit_model, newdata = weekly_test, type = "response")>0.5, "Up", "Down")
+
+test_tab = table(predicted = test_pred, actual_test = weekly_test$Direction)
+
+#View Tables
+trn_tab
+
+test_tab
+
+```
+
+```{r}
+# Full Model
+
+Direction ~ . -Year - Today
+
+#split the datset
+weekly_trn = filter(weekly, Year <=2008)
+weekly_test = filter(weekly, Year > 2008)
+
+# Fit model and confusion matrix
+Lag_logit_model = glm(Direction ~ . -Year - Today, data = weekly_trn,  family = "binomial")
+
+# Convert to classifications
+trn_pred = ifelse(predict(Lag_logit_model, type = "response")>0.5, "Up", "Down")
+
+# Make Predictions on Training Data
+trn_tab = table(predicted = trn_pred, actual_train = weekly_trn$Direction)
+
+#Make Prediction on Test Data
+test_pred = ifelse(predict(Lag_logit_model, newdata = weekly_test, type = "response")>0.5, "Up", "Down")
+
+test_tab = table(predicted = test_pred, actual_test = weekly_test$Direction)
+
+#View Tables
+trn_tab
+
+test_tab
+```
+
