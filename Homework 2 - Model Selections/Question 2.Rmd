@@ -1,0 +1,419 @@
+---
+title: 'STAT 595 HW 2 Question 2'
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Referring to the Body fat data, find the optimal model to predict percent body fat using: Age (years), Weight (lbs), Height (inches), Neck circumference (cm), Chest circumference (cm), Abdomen circumference (cm), Hip circumference (cm), Thigh circumference (cm), Knee circumference (cm), Ankle circumference (cm), Biceps (extended) circumference (cm), Forearm circumference (cm), Wrist circumference (cm)
+
+```{r}
+
+# Load Packages
+
+library("readr")
+library("ggplot2")
+library("GGally")
+library("dplyr")
+library("scales")
+library("car")
+library("janitor")
+library("leaps")
+library("MASS")
+library("Metrics")
+
+# Fix clashes
+
+select = dplyr::select
+```
+
+
+```{r}
+# Import Dataset
+
+library(readr)
+Body_Fat = read_csv("Body Fat.csv")
+
+head(Body_Fat)
+
+ls(Body_Fat)
+
+# Change variable names to have no spaces or parenthesis
+
+Body_Fat_2 = Body_Fat%>%clean_names()
+
+head(Body_Fat_2)
+
+ls(Body_Fat_2)
+
+```
+
+```{r}
+# Descriptive statistics
+
+summary(Body_Fat_2)
+```
+
+```{r}
+# Check for missing values
+
+sum(is.na(Body_Fat_2))
+
+```
+
+```{r}
+# Check how data is categorized
+
+str(Body_Fat_2)
+```
+
+Our first step is to see how correlated these variables are
+
+```{r}
+
+ggcorr(Body_Fat_2, palette = "RdBu", label = TRUE, label_size = 3, label_round = 2, hjust = 1)
+
+```
+
+From the above graph and the output we can see that many of them are highly correlated.  This leads us to suspect that there might be multicollinearity between our variables.  We will check the VIF of the linear combinaton
+
+```{r}
+
+# First model fitting for VIF
+
+vif_model_1 = lm(percent_body_fat~ ., data = Body_Fat_2)
+summary(vif_model_1)
+vif(vif_model_1)
+
+```
+
+We see very few signficant predictors and 3 of our predictors have a VIF higher than 10.  We will start to remove high values of VIF and refit the model to see of we can adjust for multicollinearity
+
+
+```{r}
+
+# second model fitting for VIF.  Remove Weight_lbs
+
+vif_model_2 = lm(percent_body_fat~ .-weight_lbs, data = Body_Fat_2)
+summary(vif_model_2)
+vif(vif_model_2)
+
+```
+
+From the second fitting we can see that the number of significant variables has increased and the number of variables with a VIF > 10 is now 2
+
+```{r}
+
+# third model fitting for VIF.  -weight_lbs -abdomen_circumference_cm
+
+vif_model_3 = lm(percent_body_fat~ .-weight_lbs -abdomen_circumference_cm, data = Body_Fat_2)
+summary(vif_model_3)
+vif(vif_model_3)
+
+```
+
+```{r}
+# 4th Fitting.  Remove -weight_lbs -abdomen_circumference_cm -hip_circumference_cm
+
+vif_model_4 = lm(percent_body_fat~ .-weight_lbs -abdomen_circumference_cm -hip_circumference_cm  , data = Body_Fat_2)
+summary(vif_model_4)
+vif(vif_model_4)
+
+```
+
+```{r}
+# 5th Fitting. Remove -weight_lbs -abdomen_circumference_cm -hip_circumference_cm -thigh_circumference_cm
+
+vif_model_5 = lm(percent_body_fat~ .-weight_lbs -abdomen_circumference_cm -hip_circumference_cm -thigh_circumference_cm, data = Body_Fat_2)
+summary(vif_model_5)
+vif(vif_model_5)
+```
+
+```{r}
+#6th Fitting. Remove -weight_lbs -abdomen_circumference_cm -hip_circumference_cm -thigh_circumference_cm -neck_circumference_cm
+
+vif_model_6 = lm(percent_body_fat~ .-weight_lbs -abdomen_circumference_cm -hip_circumference_cm -thigh_circumference_cm -neck_circumference_cm, data = Body_Fat_2)
+summary(vif_model_6)
+vif(vif_model_6)
+```
+
+```{r}
+#7th Fitting.  Remove -weight_lbs -abdomen_circumference_cm -hip_circumference_cm -thigh_circumference_cm -neck_circumference_cm -chest_circumference_cm
+
+vif_model_7 = lm(percent_body_fat~ .-weight_lbs -abdomen_circumference_cm -hip_circumference_cm -thigh_circumference_cm -neck_circumference_cm -chest_circumference_cm, data = Body_Fat_2)
+summary(vif_model_7)
+vif(vif_model_7)
+```
+
+```{r}
+# 8th Fitting. Remove -weight_lbs -abdomen_circumference_cm -hip_circumference_cm -thigh_circumference_cm -neck_circumference_cm -chest_circumference_cm -wrist_circumference_cm
+
+vif_model_8 = lm(percent_body_fat~ .-weight_lbs -abdomen_circumference_cm -hip_circumference_cm -thigh_circumference_cm -neck_circumference_cm -chest_circumference_cm -wrist_circumference_cm, data = Body_Fat_2)
+summary(vif_model_8)
+vif(vif_model_8)
+```
+
+```{r}
+#9th Fitting. Remove -weight_lbs -abdomen_circumference_cm -hip_circumference_cm -thigh_circumference_cm -neck_circumference_cm -chest_circumference_cm -wrist_circumference_cm -biceps_extended_circumference_cm
+
+vif_model_9 = lm(percent_body_fat~ .-weight_lbs -abdomen_circumference_cm -hip_circumference_cm -thigh_circumference_cm -neck_circumference_cm -chest_circumference_cm -wrist_circumference_cm -biceps_extended_circumference_cm, data = Body_Fat_2)
+summary(vif_model_9)
+vif(vif_model_9)
+```
+
+```{r}
+# 10th Fitting. Remove -weight_lbs -abdomen_circumference_cm -hip_circumference_cm -thigh_circumference_cm -neck_circumference_cm -chest_circumference_cm -wrist_circumference_cm -biceps_extended_circumference_cm -knee_circumference_cm
+
+vif_model_10 = lm(percent_body_fat~ .-weight_lbs -abdomen_circumference_cm -hip_circumference_cm -thigh_circumference_cm -neck_circumference_cm -chest_circumference_cm -wrist_circumference_cm -biceps_extended_circumference_cm -knee_circumference_cm, data = Body_Fat_2)
+summary(vif_model_10)
+vif(vif_model_10)
+```
+
+```{r}
+# Check correlation and calculate R^2, ADJ R^2, and RMSE of model
+
+Lowest_vif = Body_Fat_2 %>% select(-weight_lbs, -abdomen_circumference_cm, -hip_circumference_cm, -thigh_circumference_cm, -neck_circumference_cm, -chest_circumference_cm, -wrist_circumference_cm, -biceps_extended_circumference_cm, -knee_circumference_cm)
+
+ggcorr(Lowest_vif, palette = "RdBu", label = TRUE, hjust = 0.7)
+
+RSS_VIF = c(crossprod(vif_model_10$residuals))
+MSE_VIF = RSS_VIF/length(vif_model_10$residuals)
+RMSE_VIF = sqrt(MSE_VIF)
+R2_VIF = summary(lm(formula = percent_body_fat ~ . - weight_lbs - 
+    abdomen_circumference_cm - 
+    hip_circumference_cm - thigh_circumference_cm - neck_circumference_cm - 
+    chest_circumference_cm - wrist_circumference_cm - 
+    biceps_extended_circumference_cm - 
+    knee_circumference_cm, data = Body_Fat_2))$r.squared
+ajdR2_VIF = summary(lm(formula = percent_body_fat ~ . - weight_lbs - 
+    abdomen_circumference_cm - 
+    hip_circumference_cm - thigh_circumference_cm - neck_circumference_cm - 
+    chest_circumference_cm - wrist_circumference_cm - 
+    biceps_extended_circumference_cm - 
+    knee_circumference_cm, data = Body_Fat_2))$adj.r.squared
+```
+
+
+
+We will now perform model selection using CP, R^2 and Adj R^2
+
+Using leaps we will look for the model with the minimum CP, highest Adj R^2 and Highest R^2.  NOTE: R^2 will usually chose the largest possible model and is generally not a good indication.
+
+```{r}
+
+Body_Fat_2 %>% select(c(percent_body_fat, everything()))  # Order variables to make leaps easier
+
+Body_Fat_2.mat = as.matrix(Body_Fat_2)  # Create matrix to work with leaps
+
+cp_model = leaps(x = Body_Fat_2.mat[,2:14], y = Body_Fat_2.mat[,1], names = names(Body_Fat_2)[2:14], method = "Cp")
+
+r2_model = leaps(x = Body_Fat_2.mat[,2:14], y = Body_Fat_2.mat[,1], names = names(Body_Fat_2)[2:14], method = "r2")
+
+adjr2_model = leaps(x = Body_Fat_2.mat[,2:14], y = Body_Fat_2.mat[,1], names = names(Body_Fat_2)[2:14], method = "adjr2")
+
+# Create dataframe of overall CP, R^2, and ADJ R^2
+options(warn = -1)
+overall_cp_r2_adjr2 = data.frame(cp_model$which, Cp = cp_model$Cp, R2 = r2_model$r2, AdjR2 = adjr2_model$adjr2)
+
+# Select best CP, R^2 and AdjR^2
+best_cp = cp_model$which[which((cp_model$Cp == min(cp_model$Cp))),]
+best_adjr2 = adjr2_model$which[which((adjr2_model$adjr2 == max(adjr2_model$adjr2))),]
+best_r2 = r2_model$which[which((r2_model$r2 == max(r2_model$r2))),]
+
+# Create dataframe of model
+options(warn = -1)
+model_1 = data.frame(best_cp, best_r2, best_adjr2)
+
+# View Model
+model_1
+
+```
+
+```{r}
+# Calculate the RMSE, R^2, and ADJR^2 for each model
+
+cp_model =
+lm(formula = percent_body_fat ~ . -height_inches -chest_circumference_cm -hip_circumference_cm -knee_circumference_cm -ankle_circumference_cm -biceps_extended_circumference_cm, data = Body_Fat_2)
+
+RSS_CP = c(crossprod(cp_model$residuals))
+MSE_CP = RSS_CP/length(cp_model$residuals)
+RMSE_CP = sqrt(MSE_CP)
+R2_CP = summary(cp_model)$r.squared
+ajdR2_CP = summary(cp_model)$adj.r.squared
+
+max_r2_model = lm(formula = percent_body_fat ~ ., data = Body_Fat_2)
+
+RSS_Max_R2 = c(crossprod(max_r2_model$residuals))
+MSE_Max_R2 = RSS_Max_R2/length(max_r2_model$residuals)
+RMSE_Max_R2 = sqrt(MSE_Max_R2)
+R2_Max_R2 = summary(max_r2_model)$r.squared
+ajdR2_Max_R2 = summary(max_r2_model)$adj.r.squared
+
+max_adj_r2_model = lm(formula = percent_body_fat ~ . -height_inches -chest_circumference_cm -knee_circumference_cm -ankle_circumference_cm, data = Body_Fat_2)
+
+RSS_Max_Adj_R2 = c(crossprod(max_adj_r2_model$residuals))
+MSE_Max_Adj_R2 = RSS_Max_Adj_R2/length(max_adj_r2_model$residuals)
+RMSE_Max_Adj_R2 = sqrt(MSE_Max_Adj_R2)
+R2_Max_Adj_R2 = summary(max_adj_r2_model)$r.squared
+ajdR2_Max_Adj_R2 = summary(max_adj_r2_model)$adj.r.squared
+
+```
+
+
+We will now do model selection using Forward, Backward, and Stepwise selection with AIC and BIC
+
+```{r}
+# Full model for stepwise selection with another for directional
+
+full.model = lm(percent_body_fat ~ ., data = Body_Fat_2)
+null.model = lm(percent_body_fat ~ 1, data = Body_Fat_2)
+
+n = nrow(Body_Fat_2)
+
+```
+
+
+```{r}
+# Stepwise AIC
+
+Stepwise_AIC = stepAIC(full.model, direction = "both", trace = FALSE)
+
+summary(Stepwise_AIC)
+
+# Calculate RMSE, R^2, ADJ R^2
+
+RSS_Step_AIC = c(crossprod(Stepwise_AIC$residuals))
+MSE_Step_AIC = RSS_Step_AIC/length(Stepwise_AIC$residuals)
+RMSE_Step_AIC = sqrt(MSE_Step_AIC)
+R2_Step_AIC = summary(Stepwise_AIC)$r.squared
+ajdR2_Step_AIC = summary(Stepwise_AIC)$adj.r.squared
+```
+
+
+```{r}
+# Stepwise BIC
+
+Stepwise_BIC = stepAIC(full.model, direction = "both", trace = FALSE, k = log(n))
+
+summary(Stepwise_BIC)
+
+# Calculate RMSE, R^2, ADJ R^2
+
+RSS_Step_BIC = c(crossprod(Stepwise_BIC$residuals))
+MSE_Step_BIC = RSS_Step_BIC/length(Stepwise_BIC$residuals)
+RMSE_Step_BIC = sqrt(MSE_Step_BIC)
+R2_Step_BIC = summary(Stepwise_BIC)$r.squared
+ajdR2_Step_BIC = summary(Stepwise_BIC)$adj.r.squared
+```
+
+```{r}
+# Forward AIC
+
+Forward_AIC = stepAIC(null.model,direction="forward",scope=list(upper=full.model,lower=null.model), trace = FALSE)
+
+summary(Forward_AIC)
+
+RSS_Forward_AIC = c(crossprod(Forward_AIC$residuals))
+MSE_Forward_AIC = RSS_Forward_AIC/length(Forward_AIC$residuals)
+RMSE_Forward_AIC = sqrt(MSE_Forward_AIC)
+R2_Forward_AIC = summary(Forward_AIC)$r.squared
+ajdR2_Forward_AIC = summary(Forward_AIC)$adj.r.squared
+```
+
+```{r}
+# Forward BIC
+
+Forward_BIC = stepAIC(null.model,direction="forward",scope=list(upper=full.model,lower=null.model, k=log(n)), trace = FALSE)
+
+summary(Forward_BIC)
+
+RSS_Forward_BIC = c(crossprod(Forward_BIC$residuals))
+MSE_Forward_BIC = RSS_Forward_BIC/length(Forward_BIC$residuals)
+RMSE_Forward_BIC = sqrt(MSE_Forward_BIC)
+R2_Forward_BIC = summary(Forward_BIC)$r.squared
+ajdR2_Forward_BIC = summary(Forward_BIC)$adj.r.squared
+
+```
+
+```{r}
+# Backward AIC
+
+Backward_AIC = stepAIC(full.model,direction="backward", trace = FALSE)
+
+summary(Backward_AIC)
+
+RSS_Backward_AIC = c(crossprod(Backward_AIC$residuals))
+MSE_Backward_AIC = RSS_Backward_AIC/length(Backward_AIC$residuals)
+RMSE_Backward_AIC = sqrt(MSE_Backward_AIC)
+R2_Backward_AIC = summary(Backward_AIC)$r.squared
+ajdR2_Backward_AIC = summary(Backward_AIC)$adj.r.squared
+```
+
+```{r}
+# Backward BIC
+
+Backward_BIC = stepAIC(full.model,direction="backward", trace = FALSE, k = log(n))
+
+summary(Backward_BIC)
+
+RSS_Backward_BIC = c(crossprod(Backward_BIC$residuals))
+MSE_Backward_BIC = RSS_Backward_BIC/length(Backward_BIC$residuals)
+RMSE_Backward_BIC = sqrt(MSE_Backward_BIC)
+R2_Backward_BIC = summary(Backward_BIC)$r.squared
+ajdR2_Backward_BIC = summary(Backward_BIC)$adj.r.squared
+```
+
+```{r}
+# Model Comparison Dataframe
+
+Model_Comparison = data.frame("R^2 Value" = c(R2_CP, R2_Max_R2, R2_Max_Adj_R2, R2_VIF, R2_Backward_AIC, R2_Backward_BIC, R2_Forward_AIC, R2_Forward_BIC, R2_Step_AIC, R2_Step_BIC), "Adj R^2 Value" = c(ajdR2_CP, ajdR2_Max_R2, ajdR2_Max_Adj_R2, ajdR2_VIF, ajdR2_Backward_AIC, ajdR2_Backward_BIC, ajdR2_Forward_AIC, ajdR2_Forward_BIC, ajdR2_Step_AIC, ajdR2_Step_BIC), "RMSE" = c(RMSE_CP, RMSE_Max_R2, RMSE_Max_Adj_R2, RMSE_VIF, RMSE_Backward_AIC, RMSE_Backward_BIC, RMSE_Forward_AIC, RMSE_Forward_BIC, RMSE_Step_AIC, RMSE_Step_BIC))
+
+rownames(Model_Comparison) = c("CP Model", "Max R^2 Model", "Max.Adj R^2 Model", "VIF Model", "Backward AIC Model", "Backward BIC Model", "Forward AIC Model", "Forward BIC Model", "Stepwise AIC Model", "Stepwise BIC Model")
+
+Model_Comparison
+```
+
+```{r}
+summary(max_adj_r2_model)
+```
+
+Note that 2 of the above predictors are not significant. hip_circumference_cm and biceps_extended_circumference_cm.  We will remove biceps_extended_circumference_cm first since it has the largest P-Vaue and check the new model
+
+```{r}
+
+check = lm(formula = percent_body_fat ~ . - height_inches - chest_circumference_cm - 
+    knee_circumference_cm - ankle_circumference_cm -biceps_extended_circumference_cm , data = Body_Fat_2)
+
+summary(check)
+
+RSS_check = c(crossprod(check$residuals))
+MSE_check = RSS_check/length(check$residuals)
+RMSE_check = sqrt(MSE_check)
+R2_checkC = summary(check)$r.squared
+ajdR2_check = summary(check)$adj.r.squared
+
+```
+
+This gives us a RMSE of 4.2047
+
+We will remove hip_circumference_cm and check the RMSE
+
+```{r}
+
+check_2 = lm(formula = percent_body_fat ~ . - height_inches - chest_circumference_cm - 
+    knee_circumference_cm - ankle_circumference_cm -biceps_extended_circumference_cm -hip_circumference_cm, data = Body_Fat_2)
+
+summary(check_2)
+
+RSS_check_2 = c(crossprod(check_2$residuals))
+MSE_check_2 = RSS_check_2/length(check_2$residuals)
+RMSE_check_2 = sqrt(MSE_check_2)
+R2_check_2 = summary(check_2)$r.squared
+ajdR2_check_2 = summary(check_2)$adj.r.squared
+
+```
+
+Note that if we remove the insignificant predictors for the Max_Adj_R2 model we create models that have more insignificant predictors and a lower Adjusted R^2. In conclusion I would recommend that we do not remove the insignificant predictors and keep the model as is.
+
